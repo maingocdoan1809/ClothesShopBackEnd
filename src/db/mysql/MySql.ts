@@ -1,6 +1,7 @@
 import mysql from "mysql";
 import dotenv from "dotenv";
 import { IDatabase, SQLResult } from "../IDatabase";
+import { resolve } from "dns";
 
 dotenv.config();
 export class MySql implements IDatabase {
@@ -20,36 +21,27 @@ export class MySql implements IDatabase {
    * Query to database.
    */
   query(queryStr: string): SQLResult {
-    let result;
-    try {
-      // try to connect.
-      this.connection.connect((err) => {
-        if (err) {
-          throw err;
-        }
-        // query
-        this.connection.query(queryStr, (err, result, fields) => {
-          if (err) {
-            throw err;
-          } else {
-            result = {
-              rows: result,
-              fields,
-            };
+    this.connection.connect((err) => {
+      if (err) {
+      } else {
+        // do query
+        this.connection.query(
+          queryStr,
+          (err: mysql.MysqlError, result, fields: mysql.FieldInfo) => {
+            if (err) {
+            } else {
+            }
+            this.close();
           }
-        });
-      });
-    } catch (err) {
-      return {
-        isOk: false,
-        message: err,
-      };
-    } finally {
-      this.close();
-    }
+        );
+      }
+    });
     return {
       isOk: true,
-      result,
+      result: {
+        rows: [],
+        fields: [],
+      },
     };
   }
 }

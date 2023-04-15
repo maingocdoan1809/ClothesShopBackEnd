@@ -2,8 +2,8 @@ import { MySql } from "./mysql/MySql";
 
 export type SQLResult = {
   result?: {
-    rows: object[];
-    fields: object;
+    rows: any[];
+    fields: any[];
   };
   isOk: boolean;
   message?: any;

@@ -24,7 +24,7 @@ loginRoute.post("/", (req, res) => {
       username,
     };
   } else {
-    const querystring = `Select * from Account where username =  '${username}' and password = '${username}'`;
+    const querystring = `Select * from Account`;
     const queryresult = db.query(querystring);
     result = {
       queryResult: queryresult,
