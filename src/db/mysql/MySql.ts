@@ -20,28 +20,15 @@ export class MySql implements IDatabase {
   /**
    * Query to database.
    */
-  query(queryStr: string): SQLResult {
+  query(queryStr: string, handler: (...arg) => void) {
     this.connection.connect((err) => {
       if (err) {
+        throw err;
       } else {
         // do query
-        this.connection.query(
-          queryStr,
-          (err: mysql.MysqlError, result, fields: mysql.FieldInfo) => {
-            if (err) {
-            } else {
-            }
-            this.close();
-          }
-        );
+        this.connection.query(queryStr, handler);
       }
+      this.close();
     });
-    return {
-      isOk: true,
-      result: {
-        rows: [],
-        fields: [],
-      },
-    };
   }
 }

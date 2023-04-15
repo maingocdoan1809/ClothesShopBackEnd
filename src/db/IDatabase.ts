@@ -10,7 +10,7 @@ export type SQLResult = {
 };
 
 export interface IDatabase {
-  query: (querystr: string) => SQLResult;
+  query: (querystr: string, handler: (...arg) => void) => void;
   close: () => void;
 }
 export const Database = MySql;

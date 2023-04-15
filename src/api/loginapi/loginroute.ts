@@ -24,14 +24,37 @@ loginRoute.post("/", (req, res) => {
       username,
     };
   } else {
-    const querystring = `Select * from Account`;
-    const queryresult = db.query(querystring);
-    result = {
-      queryResult: queryresult,
-      canLogin: queryresult.isOk == true,
-      username,
-    };
+    const querystring = `Select * from Account where username = '${username}' and password = '${hashpassword}'`;
+    try {
+      db.query(querystring, (err, result, fields) => {
+        if (err) {
+          res.send({
+            canLogin: false,
+            queryResult: {
+              isOk: false,
+              message: err.message,
+            },
+            username,
+          } as LoginResult);
+        } else {
+          res.send({
+            canLogin: result.length == 1,
+            username,
+            queryResult: {
+              isOk: true,
+            },
+          } as LoginResult);
+        }
+      });
+    } catch (err) {
+      res.send({
+        canLogin: false,
+        username,
+        queryResult: {
+          isOk: true,
+        },
+      } as LoginResult);
+    }
   }
-  res.send(result);
 });
 export default loginRoute;
