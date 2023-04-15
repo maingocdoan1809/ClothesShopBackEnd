@@ -1,22 +1,20 @@
 import express from "express";
 import cors from "cors";
 import mysql from "mysql";
+import dotenv from "dotenv";
+import loginRoute from "../src/api/loginapi/loginroute";
+dotenv.config();
 const app = express();
-const connection = mysql.createConnection({
-  host: "localhost",
-  port: 3306,
-  user: "root",
-  password: "1234",
-});
-connection.connect((err) => {
-  if (err) {
-    console.log("Error");
-  }
-  console.log("Ok");
-});
-app.use(cors());
+
+app.use(
+  cors({
+    allowedHeaders: "json",
+  })
+);
+app.use(express.json());
+app.use("/login", loginRoute);
 app.get("/", (req, res) => {
-  res.send({ message: "Hello." });
+  res.send({ message: "Hello. My name is Doan" });
 });
 
 app.listen(3000);
