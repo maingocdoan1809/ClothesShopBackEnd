@@ -6,11 +6,7 @@ import loginRoute from "../src/api/loginapi/loginroute";
 dotenv.config();
 const app = express();
 
-app.use(
-  cors({
-    allowedHeaders: "json",
-  })
-);
+app.use(cors());
 app.use(express.json());
 app.use("/login", loginRoute);
 app.get("/", (req, res) => {
