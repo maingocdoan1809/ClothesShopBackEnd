@@ -1,10 +1,22 @@
-import http from "http";
+import express from "express";
+import cors from "cors";
+import mysql from "mysql";
+const app = express();
+const connection = mysql.createConnection({
+  host: "localhost",
+  port: 3306,
+  user: "root",
+  password: "1234",
+});
+connection.connect((err) => {
+  if (err) {
+    console.log("Error");
+  }
+  console.log("Ok");
+});
+app.use(cors());
+app.get("/", (req, res) => {
+  res.send({ message: "Hello." });
+});
 
-console.log("Hello World!");
-//create a server object:
-http
-  .createServer(function (req, res) {
-    res.write("Hello World!"); //write a response to the client
-    res.end(); //end the response
-  })
-  .listen(3000); //the server object listens on port 8080
+app.listen(3000);
