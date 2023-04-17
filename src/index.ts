@@ -1,6 +1,5 @@
 import express from "express";
 import cors from "cors";
-import mysql from "mysql";
 import dotenv from "dotenv";
 import loginRoute from "../src/api/loginapi/login.router";
 dotenv.config();
