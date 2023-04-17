@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import loginRoute from "../src/api/loginapi/login.router";
+import loginRoute from "../src/api/api.login/login.router";
 dotenv.config();
 const app = express();
 
