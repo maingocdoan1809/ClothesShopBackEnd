@@ -119,7 +119,8 @@ CREATE TABLE `product` (
   `name` varchar(300) CHARACTER SET utf8mb4 COLLATE utf8mb4_vietnamese_ci NOT NULL,
   `price` int(11) DEFAULT NULL,
   `promotedprice` int(11) DEFAULT 0,
-  `category` varchar(300) NOT NULL
+  `category` varchar(300) NOT NULL,
+  `image` varchar(300)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
