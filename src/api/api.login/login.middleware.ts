@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from "express";
 import { Database, IDatabase, SQLResult } from "../../db/IDatabase";
-import { LoginResult } from "../../db/dbtypes";
 import {
   generateToken,
   updateAccesstime,
@@ -8,104 +7,94 @@ import {
   updateToken,
 } from "../../utils/utilities";
 export function login(req: Request, res: Response) {
-  const isAuthenticated = req.body.isAuthenticated;
-  const username: string = req.body.username || "";
+  const username: string = req.body.username;
+  const hashpassword: string = req.body.password;
+  console.log(username);
+  console.log(hashpassword);
+
   const db: IDatabase = new Database();
 
-  if (isAuthenticated) {
-    updateAccesstime(username);
-    res.send({
-      canLogin: true,
-      username,
-      queryResult: {
-        isOk: true,
-      },
-      token: req.headers.token,
-    } as LoginResult);
-  }
+  const querystring = `Select * from account where username = '${username}' and password = '${hashpassword}'`;
 
-  const hashpassword: string = req.body.password || "";
-
-  if (!username || !hashpassword) {
-    res.send({
-      queryResult: {
-        isOk: false,
-        message: "Username and password must not be empty.",
-      },
-      canLogin: false,
-    });
-  } else {
-    const querystring = `Select * from account where username = '${username}' and password = '${hashpassword}'`;
-    try {
-      db.query(querystring, (err, result, fields) => {
-        if (err) {
+  try {
+    db.query(querystring, (err, result, fields) => {
+      if (err) {
+        res.send({
+          // send err to user.
+          err,
+        });
+      } else {
+        // if everything works fine.
+        if (result.length != 1) {
           res.send({
             canLogin: false,
-            queryResult: {
-              isOk: false,
-              message: err.message,
-            },
-            username,
-          } as LoginResult);
+            message: "Username or password is not correct.",
+          });
         } else {
-          if (result.length != 1) {
-            res.send({
-              canLogin: false,
-              queryResult: {
-                isOk: true,
-                message: "Username or password is incorrect.",
-              },
-            } as LoginResult);
-          } else {
-            console.log(req.headers.origin);
-            generateToken().then((token) => {
+          console.log(req.headers.origin);
+          generateToken()
+            .then((token) => {
               updateToken(username, token);
               updateAccesstime(username);
               updateHost(username, req.headers.origin || "localhost");
               res.send({
                 canLogin: true,
                 username,
-                queryResult: {
-                  isOk: true,
-                },
                 token,
-              } as LoginResult);
+                priority: result["priority"],
+              });
+            })
+            .catch((err) => {
+              res.send({ err });
             });
-          }
         }
-      });
-    } catch (err) {
-      res.send({
-        canLogin: false,
-        username,
-        queryResult: {
-          isOk: true,
-        },
-      } as LoginResult);
-    }
+      }
+    });
+  } catch (err) {
+    res.send({
+      err,
+    });
   }
 }
 
-export function authenticateUser(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
+export function checkUserInfo(req: Request, res: Response, next: NextFunction) {
+  const username: string = req.body.username || "";
+  const hashpassword: string = req.body.password || "";
+  if (!username || !hashpassword) {
+    res.send({
+      message: "Username and password must not be empty.",
+      canLogin: false,
+    });
+  } else {
+    next();
+  }
+}
+
+export function authenticateUser(req: Request, res: Response) {
   const database = new Database(process.env.SQL_STR);
-  const token = req.headers.token;
-  const host = req.headers.origin || "localhost";
+  const token = req.query.token;
+  const origin = req.headers.origin || "localhost";
+
+  console.log(req.headers.origin);
+  console.log(req.headers);
   if (!token) {
     res.send({
       isAuthenticated: false,
     });
   }
   database.query(
-    `Select username from account where host = '${req.hostname}' and token = '${req.headers.token}'`,
+    `Select * from account where host = '${origin}' and token = '${token}'`,
     (err, result, fields) => {
       if (result.length == 1) {
+        const info = result[0];
         res.send({
           isAuthenticated: true,
+          username: info["username"],
+          token,
+          origin,
+          priority: info["priority"],
         });
+        return;
       }
       res.send({
         isAuthenticated: false,
