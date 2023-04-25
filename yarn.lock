@@ -91,6 +91,13 @@
   dependencies:
     "@types/node" "*"
 
+"@types/crypto-hash@^1.1.2":
+  version "1.1.2"
+  resolved "https://registry.npmjs.org/@types/crypto-hash/-/crypto-hash-1.1.2.tgz"
+  integrity sha512-sOmi+4Go2XKodLV4+lfP+5QMQ+6ZYqRJhK8D/n6xsxIUvlerEulmU9S4Lo02pXCH3qPBeJXEy+g8ZERktDJLSg==
+  dependencies:
+    crypto-hash "*"
+
 "@types/express-serve-static-core@^4.17.33":
   version "4.17.33"
   resolved "https://registry.npmjs.org/@types/express-serve-static-core/-/express-serve-static-core-4.17.33.tgz"
@@ -438,7 +445,7 @@ cross-spawn@^5.0.1:
     shebang-command "^1.2.0"
     which "^1.2.9"
 
-crypto-hash@^2.0.1:
+crypto-hash@*, crypto-hash@^2.0.1:
   version "2.0.1"
   resolved "https://registry.npmjs.org/crypto-hash/-/crypto-hash-2.0.1.tgz"
   integrity sha512-t4mkp7Vh6MuCZRBf0XLzBOfhkH3nW6YEAotMDSjshVQ1GffCMGdPLSr7pKH0rdXY02jTjAZ7QW2apD0buaZXcQ==

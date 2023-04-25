@@ -10,7 +10,12 @@ import { registerRoute } from "./api/api.register/register.router";
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+app.use(
+  express.json({
+    type: ["application/json", "text/plain"],
+  })
+);
+
 app.use("/login", loginRoute);
 app.use("/checkuser", checkuserRoute);
 app.use("/register", registerRoute);
@@ -18,7 +23,7 @@ app.get("/", (req, res) => {
   res.send({ username: "maingocdoan" });
 });
 app.get(
-  "/:name",
+  "/images/:name",
   express.static(path.join(__dirname, "public")),
   getAvatarRoute
 );

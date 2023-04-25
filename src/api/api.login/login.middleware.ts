@@ -1,22 +1,26 @@
 import { NextFunction, Request, Response } from "express";
 import { Database, IDatabase, SQLResult } from "../../db/IDatabase";
 import { LoginResult } from "../../db/dbtypes";
-import { sha256 } from "crypto-hash";
+import {
+  generateToken,
+  updateAccesstime,
+  updateHost,
+  updateToken,
+} from "../../utils/utilities";
 export function login(req: Request, res: Response) {
   const isAuthenticated = req.body.isAuthenticated;
   const username: string = req.body.username || "";
   const db: IDatabase = new Database();
 
   if (isAuthenticated) {
-    db.query(
-      `update account set accesstimes = accesstimes + 1 where username = ${username}`
-    );
+    updateAccesstime(username);
     res.send({
       canLogin: true,
       username,
       queryResult: {
         isOk: true,
       },
+      token: req.headers.token,
     } as LoginResult);
   }
 
@@ -44,17 +48,30 @@ export function login(req: Request, res: Response) {
             username,
           } as LoginResult);
         } else {
-          const anotherDb: IDatabase = new Database(process.env.SQL_STR);
-          anotherDb.query(
-            `update account set accesstimes = accesstimes + 1, host = '${req.hostname}' where username = '${username}'`
-          );
-          res.send({
-            canLogin: result.length == 1,
-            username,
-            queryResult: {
-              isOk: true,
-            },
-          } as LoginResult);
+          if (result.length != 1) {
+            res.send({
+              canLogin: false,
+              queryResult: {
+                isOk: true,
+                message: "Username or password is incorrect.",
+              },
+            } as LoginResult);
+          } else {
+            console.log(req.headers.origin);
+            generateToken().then((token) => {
+              updateToken(username, token);
+              updateAccesstime(username);
+              updateHost(username, req.headers.origin || "localhost");
+              res.send({
+                canLogin: true,
+                username,
+                queryResult: {
+                  isOk: true,
+                },
+                token,
+              } as LoginResult);
+            });
+          }
         }
       });
     } catch (err) {
@@ -76,21 +93,23 @@ export function authenticateUser(
 ) {
   const database = new Database(process.env.SQL_STR);
   const token = req.headers.token;
+  const host = req.headers.origin || "localhost";
   if (!token) {
-    next();
-    return;
+    res.send({
+      isAuthenticated: false,
+    });
   }
   database.query(
     `Select username from account where host = '${req.hostname}' and token = '${req.headers.token}'`,
     (err, result, fields) => {
-      if (err) {
-        next();
-      } else {
-        if (result.length == 1) {
-          req.body.isAuthenticated = true;
-        }
-        next();
+      if (result.length == 1) {
+        res.send({
+          isAuthenticated: true,
+        });
       }
+      res.send({
+        isAuthenticated: false,
+      });
     }
   );
 }
