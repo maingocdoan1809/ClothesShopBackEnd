@@ -9,8 +9,6 @@ import {
 export function login(req: Request, res: Response) {
   const username: string = req.body.username;
   const hashpassword: string = req.body.password;
-  console.log(username);
-  console.log(hashpassword);
 
   const db: IDatabase = new Database();
 
@@ -27,26 +25,21 @@ export function login(req: Request, res: Response) {
         // if everything works fine.
         if (result.length != 1) {
           res.send({
-            canLogin: false,
+            isAuthenticated: false,
             message: "Username or password is not correct.",
           });
         } else {
-          console.log(req.headers.origin);
-          generateToken()
-            .then((token) => {
-              updateToken(username, token);
-              updateAccesstime(username);
-              updateHost(username, req.headers.origin || "localhost");
-              res.send({
-                canLogin: true,
-                username,
-                token,
-                priority: result["priority"],
-              });
-            })
-            .catch((err) => {
-              res.send({ err });
-            });
+          const token = generateToken();
+          updateToken(username, token);
+          updateAccesstime(username);
+          updateHost(username, req.headers.origin || "localhost");
+          res.send({
+            isAuthenticated: true,
+            username,
+            token,
+            priority: result[0]["priority"],
+            fullname: result[0]["fullname"],
+          });
         }
       }
     });
@@ -63,7 +56,7 @@ export function checkUserInfo(req: Request, res: Response, next: NextFunction) {
   if (!username || !hashpassword) {
     res.send({
       message: "Username and password must not be empty.",
-      canLogin: false,
+      isAuthenticated: false,
     });
   } else {
     next();
@@ -74,9 +67,6 @@ export function authenticateUser(req: Request, res: Response) {
   const database = new Database(process.env.SQL_STR);
   const token = req.query.token;
   const origin = req.headers.origin || "localhost";
-
-  console.log(req.headers.origin);
-  console.log(req.headers);
   if (!token) {
     res.send({
       isAuthenticated: false,
@@ -90,6 +80,7 @@ export function authenticateUser(req: Request, res: Response) {
         res.send({
           isAuthenticated: true,
           username: info["username"],
+          fullname: info["fullname"],
           token,
           origin,
           priority: info["priority"],

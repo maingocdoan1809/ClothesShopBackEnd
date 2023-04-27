@@ -2,7 +2,7 @@ import { MysqlError } from "mysql";
 import { Database, IDatabase } from "../db/IDatabase";
 import { NextFunction, Response, Request } from "express";
 import dotenv from "dotenv";
-import bcrypt from "bcrypt";
+import { SHA256 } from "crypto-js";
 dotenv.config();
 export function checkUserExistence(
   req: Request,
@@ -38,11 +38,10 @@ export function updateHost(username: string, hostname: string) {
     `update account set host='${hostname}' where username = '${username}'`
   );
 }
-export async function generateToken() {
-  return await bcrypt.hash(
-    process.env.TOKEN + new Date().getTime() + Math.random() * 10000,
-    Math.random() * 100
-  );
+export function generateToken() {
+  return SHA256(
+    process.env.TOKEN + new Date().getTime() + Math.random() * 10000
+  ).toString();
 }
 export function updateToken(username: string, newToken: string) {
   const anotherDb: IDatabase = new Database(process.env.SQL_STR);
