@@ -7,6 +7,8 @@ import path from "path";
 dotenv.config();
 import { checkuserRoute } from "./api/api.register/checkuser.route";
 import { registerRoute } from "./api/api.register/register.router";
+import { Server } from "socket.io";
+import http from "http";
 const app = express();
 
 app.use(cors());
@@ -27,5 +29,13 @@ app.get(
   express.static(path.join(__dirname, "public")),
   getAvatarRoute
 );
+const httpServer = http.createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: "*",
+  },
+});
 
-app.listen(3000);
+httpServer.listen(3000, () => {
+  console.log("Server is listening on port 3000");
+});
