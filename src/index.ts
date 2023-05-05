@@ -9,6 +9,7 @@ import { checkuserRoute } from "./api/api.register/checkuser.route";
 import { registerRoute } from "./api/api.register/register.route";
 import usersRoute from "./api/api.users/users.route";
 import authRoute from "./api/api.auth/auth.route";
+
 const app = express();
 
 app.use(cors());
@@ -31,5 +32,6 @@ app.get(
   express.static(path.join(__dirname, "public")),
   getAvatarRoute
 );
-
-app.listen(3000);
+app.listen(3000, () => {
+  console.log("App's listening on port 3000");
+});
