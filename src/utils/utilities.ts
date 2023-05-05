@@ -3,6 +3,7 @@ import { Database, IDatabase } from "../db/IDatabase";
 import { NextFunction, Response, Request } from "express";
 import dotenv from "dotenv";
 import { SHA256 } from "crypto-js";
+import { type } from "os";
 dotenv.config();
 export function checkUserExistence(
   req: Request,
@@ -49,3 +50,18 @@ export function updateToken(username: string, newToken: string) {
     `update account set token='${newToken}' where username = '${username}'`
   );
 }
+
+export type LoginResult = {
+  isAuthenticated: boolean;
+  token: string;
+  origin: string;
+  username: string;
+  fullname: string;
+  email: string | undefined;
+  birthday: string | undefined;
+  accesstimes: number;
+  priority: number;
+  avt: string | undefined;
+  phonenumber: string | undefined;
+  address: string | undefined;
+};
