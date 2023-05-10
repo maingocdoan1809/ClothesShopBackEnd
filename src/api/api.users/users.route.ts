@@ -1,11 +1,20 @@
 import { Router } from "express";
-import { MySql } from "../../db/mysql/MySql";
 import { Database } from "../../db/IDatabase";
 import { LoginResult } from "../../utils/utilities";
-
+import { authenticateUser } from "../api.auth/auth.route";
+import multer from "multer";
 const usersRoute = Router();
 
-usersRoute.get("/", (req, res) => {
+const handelFile = multer({
+  dest: "../../public/avts/",
+});
+
+usersRoute.get("/", authenticateUser, (req, res) => {
+  const authResult = JSON.parse(req.body.auth || "{}");
+  if (!authResult.isAuthenticated || authResult.priority == 0) {
+    res.status(401).send({ message: "unauthorized" });
+    return;
+  }
   const database = new Database();
   database
     .query(`Select * from account `, (err, result, fields) => {
@@ -34,4 +43,10 @@ usersRoute.get("/", (req, res) => {
     });
 });
 
+usersRoute.put("/:username", handelFile.single("newAvt"), (req, res) => {
+  console.log("username: " + req.params.username);
+
+  console.log(req.body);
+  res.send({ body: req.body });
+});
 export default usersRoute;

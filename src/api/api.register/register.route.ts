@@ -7,6 +7,7 @@ export const registerRoute = express.Router();
 registerRoute.post("/", checkUserExistence, (req, res) => {
   const { username, password, fullname, email, phonenumber, isExist } =
     req.body;
+  console.log(req.body);
 
   if (isExist) {
     res.send({ message: "Username exists", hasRegistered: false });
@@ -16,7 +17,7 @@ registerRoute.post("/", checkUserExistence, (req, res) => {
       `Insert into account(username, password, fullname, email, phonenumber) values('${username}','${password}', '${fullname}', '${email}', '${phonenumber}')`,
       (err, result, fields) => {
         if (err) {
-          res.sendStatus(500).send({
+          res.status(500).send({
             err,
             message: "Register failed",
             hasRegistered: false,
