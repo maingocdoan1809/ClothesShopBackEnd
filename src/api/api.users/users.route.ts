@@ -5,8 +5,16 @@ import { authenticateUser } from "../api.auth/auth.route";
 import multer from "multer";
 const usersRoute = Router();
 
+const storage = multer.diskStorage({
+  destination: "public/avts",
+  filename: function (req, file, cb) {
+    console.log(file.filename);
+
+    cb(null, "avt_" + req.body.username + ".jpg");
+  },
+});
 const handelFile = multer({
-  dest: "../../public/avts/",
+  storage: storage,
 });
 
 usersRoute.get("/", authenticateUser, (req, res) => {
@@ -46,7 +54,6 @@ usersRoute.get("/", authenticateUser, (req, res) => {
 usersRoute.put("/:username", handelFile.single("newAvt"), (req, res) => {
   console.log("username: " + req.params.username);
 
-  console.log(req.body);
   res.send({ body: req.body });
 });
 export default usersRoute;

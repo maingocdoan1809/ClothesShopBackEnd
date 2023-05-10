@@ -18,7 +18,7 @@ app.use(
     type: ["application/json", "text/plain"],
   })
 );
-
+app.use(express.static("public"));
 app.use("/login", loginRoute);
 app.use("/checkuser", checkuserRoute);
 app.use("/register", registerRoute);
