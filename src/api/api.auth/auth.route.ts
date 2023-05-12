@@ -2,6 +2,8 @@ import { Router } from "express";
 import { NextFunction, Request, Response } from "express";
 import { Database, IDatabase, SQLResult } from "../../db/IDatabase";
 import { LoginResult } from "../../utils/utilities";
+import dotenv from "dotenv";
+dotenv.config();
 const authRoute = Router();
 
 export function authenticateUser(
@@ -13,6 +15,7 @@ export function authenticateUser(
   const userid = req.query.username;
   const token = req.query.token;
   const origin = req.headers.origin || "localhost";
+
   if (!token || !userid) {
     req.body.auth = JSON.stringify({
       isAuthenticated: false,
@@ -41,7 +44,7 @@ export function authenticateUser(
             birthday: user.birthday,
             accesstimes: user.accesstimes,
             priority: user.priority,
-            avt: user.img,
+            avt: process.env.BACK_END_URL + "/avts/" + user.img,
             phonenumber: user.phonenumber,
             address: user.address,
           } as LoginResult);

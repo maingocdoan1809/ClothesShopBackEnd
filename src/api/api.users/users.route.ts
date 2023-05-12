@@ -3,13 +3,12 @@ import { Database } from "../../db/IDatabase";
 import { LoginResult } from "../../utils/utilities";
 import { authenticateUser } from "../api.auth/auth.route";
 import multer from "multer";
+import { send } from "process";
 const usersRoute = Router();
 
 const storage = multer.diskStorage({
   destination: "public/avts",
   filename: function (req, file, cb) {
-    console.log(file.filename);
-
     cb(null, "avt_" + req.body.username + ".jpg");
   },
 });
@@ -50,10 +49,58 @@ usersRoute.get("/", authenticateUser, (req, res) => {
       res.send({ users: [] });
     });
 });
+usersRoute.put("/changepass", authenticateUser, (req, res) => {
+  const body = JSON.parse(req.body.auth);
+  if (body.isAuthenticated) {
+    const username = req.query.username;
+    const password = req.body.oldpass;
+    const newpassword = req.body.newpass;
 
-usersRoute.put("/:username", handelFile.single("newAvt"), (req, res) => {
-  console.log("username: " + req.params.username);
+    const database = new Database();
 
-  res.send({ body: req.body });
+    database.query(
+      `Update account set password = '${newpassword}' where username = '${username}' and password = '${password}' and token = '${body.token}'`,
+      (err, result, fields) => {
+        if (err) {
+          res.status(500).send({ err: "Something went wrong" });
+        } else {
+          if (result.affectedRows >= 1) {
+            res.send({
+              isChange: true,
+            });
+          } else {
+            res.status(401).send({ isChange: false });
+          }
+        }
+      }
+    );
+  } else {
+    res.status(401).send({ isChange: false });
+  }
+});
+usersRoute.put("/edit/:username", handelFile.single("newAvt"), (req, res) => {
+  const username = req.params.username;
+  const avt = req.file ? req.file.filename : req.body.avt;
+  const database = new Database();
+
+  database.query(
+    `
+    Update account set fullname = '${req.body.fullname}',
+    phonenumber = '${req.body.phonenumber}',
+    birthday = '${req.body.birthday}',
+    address = '${req.body.address}',
+    email = '${req.body.email}',
+    img = '${avt}'
+    where username = '${username}'
+
+  `,
+    (err, result, fields) => {
+      if (err) {
+        res.send({ err });
+      } else {
+        res.status(200).send({ status: "updated" });
+      }
+    }
+  );
 });
 export default usersRoute;

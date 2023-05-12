@@ -7,6 +7,8 @@ import {
   updateHost,
   updateToken,
 } from "../../utils/utilities";
+import dotenv from "dotenv";
+dotenv.config();
 export function login(req: Request, res: Response) {
   const username: string = req.body.username;
   const hashpassword: string = req.body.password;
@@ -46,7 +48,7 @@ export function login(req: Request, res: Response) {
           accesstimes: user.accesstimes,
           priority: user.priority,
           phonenumber: user.phonenumber,
-          avt: user.img,
+          avt: process.env.BACK_END_URL + "/avts/" + user.img,
           address: user.address,
         } as LoginResult);
       }
