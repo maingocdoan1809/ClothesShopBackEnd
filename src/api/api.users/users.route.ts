@@ -78,13 +78,17 @@ usersRoute.put("/changepass", authenticateUser, (req, res) => {
     res.status(401).send({ isChange: false });
   }
 });
-usersRoute.put("/edit/:username", handelFile.single("newAvt"), (req, res) => {
-  const username = req.params.username;
-  const avt = req.file ? req.file.filename : req.body.avt;
-  const database = new Database();
+usersRoute.put(
+  "/edit/:username",
+  authenticateUser,
+  handelFile.single("newAvt"),
+  (req, res) => {
+    const username = req.params.username;
+    const avt = req.file ? req.file.filename : req.body.avt;
+    const database = new Database();
 
-  database.query(
-    `
+    database.query(
+      `
     Update account set fullname = '${req.body.fullname}',
     phonenumber = '${req.body.phonenumber}',
     birthday = '${req.body.birthday}',
@@ -94,13 +98,14 @@ usersRoute.put("/edit/:username", handelFile.single("newAvt"), (req, res) => {
     where username = '${username}'
 
   `,
-    (err, result, fields) => {
-      if (err) {
-        res.send({ err });
-      } else {
-        res.status(200).send({ status: "updated" });
+      (err, result, fields) => {
+        if (err) {
+          res.send({ err });
+        } else {
+          res.status(200).send({ status: "updated" });
+        }
       }
-    }
-  );
-});
+    );
+  }
+);
 export default usersRoute;
