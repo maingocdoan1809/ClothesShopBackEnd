@@ -11,29 +11,37 @@ productRouter.get("/", (req, res) => {
     return;
   }
   const database = new Database();
-  database.query(
-    `Select productinfo.*, min(price) as price ,product.imageurl, product.price, sum(product.quantity) as quantity from productinfo inner join product on product.infoid = productinfo.id group by productinfo.id Limit ${PRODUCTS_PER_FETCH} offset ${
-      PRODUCTS_PER_FETCH * Number.parseInt(page)
-    }`,
-    (err, result, fields) => {
-      if (err) {
-        res.send(err);
-      } else {
-        res.send(result);
+  database
+    .query(
+      `Select productinfo.*, min(price) as price ,product.imageurl, product.price, sum(product.quantity) as quantity from productinfo inner join product on product.infoid = productinfo.id group by productinfo.id Limit ${PRODUCTS_PER_FETCH} offset ${
+        PRODUCTS_PER_FETCH * Number.parseInt(page)
+      }`,
+      (err, result, fields) => {
+        if (err) {
+          res.send({ err });
+        } else {
+          res.send(result);
+        }
       }
-    }
-  );
+    )
+    .catch((err) => {
+      res.send({ err });
+    });
 });
 productRouter.get("/category", (req, res) => {
   const database = new Database();
 
-  database.query("Select * from category", (err, result, fields) => {
-    if (err) {
-      res.send(err);
-    } else {
-      res.send(result);
-    }
-  });
+  database
+    .query("Select * from category", (err, result, fields) => {
+      if (err) {
+        res.send({ err });
+      } else {
+        res.send(result);
+      }
+    })
+    .catch((err) => {
+      res.send({ err });
+    });
 });
 productRouter.get("/search", (req, res) => {
   const database = new Database();
@@ -42,28 +50,36 @@ productRouter.get("/search", (req, res) => {
   const priceMin = req.query.minPrice;
   const color = req.query.color;
   console.log(color);
-  database.query(`Select * from product`, (err, result, fields) => {
-    if (err) {
-      res.send(err);
-    } else {
-      res.send(result);
-    }
-  });
-});
-productRouter.get("/:infoid", (req, res) => {
-  const database = new Database();
-  database.query(
-    `Select productinfo.*, product.* from product inner join productinfo on product.infoid = productinfo.id  where infoid = '${req.params.infoid}'
-     
-    `,
-    (err, result, fields) => {
+  database
+    .query(`Select * from product`, (err, result, fields) => {
       if (err) {
-        res.send(err);
+        res.send({ err });
       } else {
         res.send(result);
       }
-    }
-  );
+    })
+    .catch((err) => {
+      res.send({ err });
+    });
+});
+productRouter.get("/:infoid", (req, res) => {
+  const database = new Database();
+  database
+    .query(
+      `Select productinfo.*, product.* from product inner join productinfo on product.infoid = productinfo.id  where infoid = '${req.params.infoid}'
+     
+    `,
+      (err, result, fields) => {
+        if (err) {
+          res.send({ err });
+        } else {
+          res.send(result);
+        }
+      }
+    )
+    .catch((err) => {
+      res.send({ err });
+    });
 });
 
 export default productRouter;
