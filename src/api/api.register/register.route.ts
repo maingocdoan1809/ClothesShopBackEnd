@@ -2,7 +2,7 @@ import express from "express";
 import http from "http";
 import { checkUserExistence } from "../../utils/utilities";
 import { Database } from "../../db/IDatabase";
-export const registerRoute = express.Router();
+const registerRoute = express.Router();
 
 registerRoute.post("/", checkUserExistence, (req, res) => {
   const { username, password, fullname, email, phonenumber, isExist } =
@@ -33,3 +33,5 @@ registerRoute.post("/", checkUserExistence, (req, res) => {
     );
   }
 });
+
+export default registerRoute;
