@@ -22,13 +22,18 @@ export class MySql implements IDatabase {
    * Query to database.
    */
   query(queryStr: string, handler: (...arg) => void) {
-    return new Promise((resolve, rejects) => {
+    return new Promise((resolve, reject) => {
       this.connection.connect((err) => {
         if (err) {
-          rejects(err);
+          reject(err);
         } else {
           // do query
-          this.connection.query(queryStr, handler);
+          this.connection.query(queryStr, (err, result, fields) => {
+            if (handler) {
+              handler(err, result, fields);
+            }
+            resolve(result);
+          });
         }
         this.close();
       });

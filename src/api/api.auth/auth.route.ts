@@ -12,8 +12,9 @@ export function authenticateUser(
   next: NextFunction
 ) {
   const database = new Database();
-  const userid = req.query.username;
-  const token = req.query.token;
+  const userid = req.query.username || req.body.username;
+  const token = req.query.token || req.body.token;
+
   const origin = req.headers.origin || "localhost";
 
   if (!token || !userid) {
