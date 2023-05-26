@@ -4,6 +4,8 @@ const PRODUCTS_PER_FETCH = 100;
 
 const productRouter = Router();
 
+productRouter.post("/", (req, res) => {});
+
 productRouter.get("/", (req, res) => {
   const page = req.query.page as string;
   if (!page) {
@@ -29,21 +31,6 @@ productRouter.get("/", (req, res) => {
     });
 });
 
-productRouter.get("/category", (req, res) => {
-  const database = new Database();
-
-  database
-    .query("Select * from category", (err, result, fields) => {
-      if (err) {
-        res.send({ err });
-      } else {
-        res.send(result);
-      }
-    })
-    .catch((err) => {
-      res.send({ err });
-    });
-});
 productRouter.get("/search", (req, res) => {
   const database = new Database();
   const category = req.query.category;

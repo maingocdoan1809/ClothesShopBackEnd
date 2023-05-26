@@ -1,4 +1,5 @@
 import express from "express";
+import http from "http";
 import cors from "cors";
 import dotenv from "dotenv";
 import loginRouter from "./api/api.login/login.route";
@@ -11,6 +12,9 @@ import authRouter from "./api/api.auth/auth.route";
 import productRouter from "./api/api.product/product.route";
 import categoryRouter from "./api/api.category/category.route";
 import commentRouter from "./api/api.comment/comment.route";
+import checkoutRouter from "./api/api.checkout/checkout.route";
+
+import io from "socket.io";
 const app = express();
 
 app.use(cors());
@@ -29,7 +33,26 @@ app.use("/auth", authRouter);
 app.use("/products", productRouter);
 app.use("/categories", categoryRouter);
 app.use("/comments", commentRouter);
+app.use("/checkout", checkoutRouter);
+const PORT = 3000;
+const httpServer = http.createServer(app);
+const sockerServer = new io.Server(httpServer, {
+  cors: {
+    origin: "*",
+  },
+});
 
-app.listen(3000, () => {
-  console.log("App's listening on port 3000");
+httpServer.listen(PORT, () => {
+  console.log(`Server is listening on port ${PORT}`);
+});
+
+/// socket
+
+sockerServer.on("connection", (server) => {
+  server.on("buy", (data: string) => {
+    server.broadcast.emit(
+      "notify",
+      `User ${data} got a new bill, check it out`
+    );
+  });
 });

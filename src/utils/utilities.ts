@@ -50,7 +50,17 @@ export function updateToken(username: string, newToken: string) {
     `update account set token='${newToken}' where username = '${username}'`
   );
 }
-
+export function makeRandomKey() {
+  const str = "abcdefghijklmnopqwrtxyxABCDEFGHIJKLMNOPQRTXYZ";
+  let hash = "";
+  for (let i = 0; i < 5; i++) {
+    const now = Date.now();
+    const randomNum = Math.floor(Math.random() * 100); // 0 - 99s
+    hash += str[Math.floor(Math.random() * str.length)];
+    hash += now % randomNum;
+  }
+  return hash;
+}
 export type LoginResult = {
   isAuthenticated: boolean;
   token: string;

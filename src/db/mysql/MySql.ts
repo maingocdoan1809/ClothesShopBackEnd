@@ -1,6 +1,6 @@
 import mysql from "mysql";
 import dotenv from "dotenv";
-import { IDatabase, SQLResult } from "../IDatabase";
+import { IDatabase, SQLResult, XQuery } from "../IDatabase";
 import { resolve } from "dns";
 import { rejects } from "assert";
 
@@ -11,6 +11,58 @@ export class MySql implements IDatabase {
     this.connection = mysql.createConnection(
       connectionStr || process.env.SQL_STR || "localhost:3306"
     );
+  }
+  private executeMultiple(
+    queries: XQuery[],
+    index: number,
+    whenAllDone: (...arg) => void,
+    whenError: (...arg) => void
+  ) {
+    if (index == queries.length) {
+      this.connection.commit();
+      whenAllDone();
+      return;
+    }
+    this.connection.query(queries[index].query, (err, result, fields) => {
+      if (err) {
+        this.connection.rollback();
+        whenError();
+      } else {
+        queries[index].handler(err, result, fields);
+        this.executeMultiple(queries, index + 1, whenAllDone, whenError);
+      }
+    });
+  }
+  multipeQueryWithTransaction(queries: XQuery[]) {
+    return new Promise((resolve, reject) => {
+      // connect to database
+      this.connection.connect((err) => {
+        // if there is an error, notify it to user
+        if (err) {
+          reject(err);
+        } else {
+          // if connected, begin a transaction:
+          this.connection.beginTransaction((err) => {
+            if (err) {
+              // notify user if there's an error
+              reject(err);
+            } else {
+              // begin transaction, now start querying.
+              this.executeMultiple(
+                queries,
+                0,
+                () => {
+                  resolve("OKKKK");
+                },
+                () => {
+                  reject("Nooo");
+                }
+              );
+            }
+          });
+        }
+      });
+    });
   }
   /**
    * close the connection
