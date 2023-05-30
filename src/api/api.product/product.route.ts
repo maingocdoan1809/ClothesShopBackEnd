@@ -1,6 +1,6 @@
 import Router, { query } from "express";
 import { Database } from "../../db/IDatabase";
-const PRODUCTS_PER_FETCH = 100;
+const PRODUCTS_PER_FETCH = 5;
 
 const productRouter = Router();
 

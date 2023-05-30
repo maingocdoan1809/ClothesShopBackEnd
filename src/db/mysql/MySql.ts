@@ -26,9 +26,11 @@ export class MySql implements IDatabase {
     this.connection.query(queries[index].query, (err, result, fields) => {
       if (err) {
         this.connection.rollback();
-        whenError();
+        whenError(err);
       } else {
-        queries[index].handler(err, result, fields);
+        if (queries[index].handler) {
+          queries[index].handler(err, result, fields);
+        }
         this.executeMultiple(queries, index + 1, whenAllDone, whenError);
       }
     });
@@ -54,8 +56,8 @@ export class MySql implements IDatabase {
                 () => {
                   resolve("OKKKK");
                 },
-                () => {
-                  reject("Nooo");
+                (err) => {
+                  reject(err);
                 }
               );
             }
