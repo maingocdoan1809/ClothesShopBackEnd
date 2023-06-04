@@ -77,4 +77,35 @@ productRouter.get("/:infoid(\\w+|all)", (req, res) => {
     });
 });
 
+productRouter.put(
+  "/:infoid",
+  (req, res, next) => {
+    const { name, categoryid } = req.body;
+    if (name.trim() == "" || categoryid.trim() == "") {
+      res
+        .status(403)
+        .send({ err: "Name and categoryID are required.", updated: false });
+      return;
+    } else {
+      next();
+    }
+  },
+  (req, res) => {
+    const infoId = req.params.infoid;
+    const { name, categoryid } = req.body;
+
+    const database = new Database();
+    database.query(
+      `Update productinfo set name = '${name}', category = '${categoryid}' where id = '${infoId}'`,
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ err, updated: false });
+        } else {
+          res.status(200).send({ updated: true });
+        }
+      }
+    );
+  }
+);
+
 export default productRouter;
