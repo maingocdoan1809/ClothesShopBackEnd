@@ -73,7 +73,7 @@ checkoutRoute.get("/:idbill?", (req, res) => {
                 : `${idbill
                     ? `where bill.id = '${idbill}'`
                     : `${datecreated
-                        ? `where bill.datecreated = '${datecreated}'`
+                        ? `where convert(date, bill.datecreated) = '${datecreated}'`
                         : ""}`}`}`}`
     }`, 
   
