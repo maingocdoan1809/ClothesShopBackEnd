@@ -80,3 +80,4 @@ customerRoute.put("/:username", requirePriority, getAll, (req, res) => {
     .catch((err) => res.status(408).send({ err }));
 });
 
+export default customerRoute;
