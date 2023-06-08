@@ -11,12 +11,13 @@ type Customer = {
     email: string;
     address: string;
     state: boolean;
-    priority: boolean;
+    priority: number;
   };
   
 function getAll(req: Request, res: Response, next: NextFunction) {
     const database = new Database();
     const username = (req.params.username as string) || req.body.username;
+    const fullname = req.query.fullname;  
     const state = req.query.state;
   
     database
@@ -24,7 +25,11 @@ function getAll(req: Request, res: Response, next: NextFunction) {
         `Select account.* from account ${
           (username != undefined)
             ? `where lower(account.username) = '${username.toLowerCase()}'`
-            : `${state ? `where account.state = '${state}'` : ""}`
+            : `${(fullname && state != undefined)
+                ? `where account.fullname like N'%${fullname}%' and account.state = '${state}'`
+                : `${fullname 
+                    ? `where account.fullname like N'%${fullname}%'`
+                    : `${(state != undefined) ? `where account.state = '${state}'` : ""}`}`}`
         }`,
         (err, result, fields) => {
           if (err) {
@@ -44,6 +49,7 @@ function getAll(req: Request, res: Response, next: NextFunction) {
   
 function requirePriority(req: Request, res: Response, next: NextFunction) {
   const priority = req.body.priority;
+  console.log(priority)
   if (!priority) {
     res.status(406).send({ msg: "Priority is required" });
     return;
@@ -57,7 +63,7 @@ customerRoute.get("/:username?", getAll, (req, res) => {
 });
 
 //Update customer priority
-customerRoute.put("/:username", requirePriority, getAll, (req, res) => {
+customerRoute.put('/:username', requirePriority, getAll, (req, res) => {
   if (req.body.err) {
     res.sendStatus(408);
     return; 
