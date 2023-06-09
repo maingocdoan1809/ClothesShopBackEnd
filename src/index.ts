@@ -13,6 +13,7 @@ import productRouter from "./api/api.product/product.route";
 import categoryRouter from "./api/api.category/category.route";
 import commentRouter from "./api/api.comment/comment.route";
 import checkoutRouter from "./api/api.checkout/checkout.route";
+import customerRouter from "./api/api.customer/customer.route";
 
 import io from "socket.io";
 const app = express();
@@ -34,6 +35,7 @@ app.use("/products", productRouter);
 app.use("/categories", categoryRouter);
 app.use("/comments", commentRouter);
 app.use("/checkout", checkoutRouter);
+app.use("/customer", customerRouter)
 const PORT = 3000;
 const httpServer = http.createServer(app);
 const sockerServer = new io.Server(httpServer, {
