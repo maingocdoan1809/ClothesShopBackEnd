@@ -15,7 +15,10 @@ productRouter.get("/", (req, res) => {
   const database = new Database();
   database
     .query(
-      `Select productinfo.*, min(price) as price ,product.imageurl, product.price, sum(product.quantity) as quantity from productinfo inner join product on product.infoid = productinfo.id group by productinfo.id Limit ${PRODUCTS_PER_FETCH} offset ${
+      `Select productinfo.*, min(price) as price ,product.imageurl, product.price, sum(product.quantity) as quantity, category.name as category, category.id as categoryid from productinfo inner join product on product.infoid = productinfo.id
+      inner join category
+      on productinfo.category = category.id
+       group by productinfo.id Limit ${PRODUCTS_PER_FETCH} offset ${
         PRODUCTS_PER_FETCH * Number.parseInt(page)
       }`,
       (err, result, fields) => {
@@ -53,9 +56,12 @@ productRouter.get("/search", (req, res) => {
 productRouter.get("/:infoid(\\w+|all)", (req, res) => {
   const database = new Database();
   const cmd = req.params.infoid;
-  const queryStr = `Select productinfo.*, product.* from product inner join productinfo on product.infoid = productinfo.id  where ${
-    cmd.toLowerCase() == "all" ? true : `product.infoid = ${req.params.infoid}`
-  }
+  const queryStr = `Select productinfo.*, category.name as category, category.id as categoryid, product.* from product inner join productinfo on product.infoid = productinfo.id inner join category
+      on productinfo.category = category.id  where ${
+        cmd.toLowerCase() == "all"
+          ? true
+          : `product.infoid = ${req.params.infoid}`
+      }
   `;
 
   database
@@ -70,5 +76,36 @@ productRouter.get("/:infoid(\\w+|all)", (req, res) => {
       res.send({ err });
     });
 });
+
+productRouter.put(
+  "/:infoid",
+  (req, res, next) => {
+    const { name, categoryid } = req.body;
+    if (name.trim() == "" || categoryid.trim() == "") {
+      res
+        .status(403)
+        .send({ err: "Name and categoryID are required.", updated: false });
+      return;
+    } else {
+      next();
+    }
+  },
+  (req, res) => {
+    const infoId = req.params.infoid;
+    const { name, categoryid } = req.body;
+
+    const database = new Database();
+    database.query(
+      `Update productinfo set name = '${name}', category = '${categoryid}' where id = '${infoId}'`,
+      (err, result) => {
+        if (err) {
+          res.status(500).send({ err, updated: false });
+        } else {
+          res.status(200).send({ updated: true });
+        }
+      }
+    );
+  }
+);
 
 export default productRouter;
