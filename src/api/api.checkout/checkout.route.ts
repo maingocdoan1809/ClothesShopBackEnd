@@ -55,8 +55,32 @@ checkoutRoute.post("", authenticateUser, (req, res) => {
   }
 });
 
-checkoutRoute.get("/", (req, res) => {
+checkoutRoute.get("/:idbill?", (req, res) => {
   const db = new Database();
+  const state = req.query.state;
+  const idbill = (req.params.idbill as string);
+  const datecreated = req.query.datecreated;
+
+  db.
+    query(`select bill.id, bill.state, productinbill.quantity as quantity, product.quantity as totalamount, bill.datecreated, product.price 
+            from bill inner join productinbill on bill.id = productinbill.idbill inner join product on productinbill.idproduct = product.id ${
+      (state && idbill)
+        ? `where bill.state = '${state}' and bill.id = '${idbill}'`
+        : `${(state && datecreated)
+            ? `where bill.state = '${state}' and bill.datecreated = '${datecreated}'`
+            : `${state
+                ? `where bill.state = '${state}'`
+                : `${idbill
+                    ? `where bill.id = '${idbill}'`
+                    : `${datecreated
+                        ? `where convert(date, bill.datecreated) = '${datecreated}'`
+                        : ""}`}`}`}`
+    }`, 
+  
+    (err, data)=>{
+      if(err) throw err;
+      res.send(data);
+    })
 });
 
 function makeCartQueries(idBill: string, cart: any) {
