@@ -62,13 +62,13 @@ checkoutRoute.get("/:idbill?", (req, res) => {
   const datecreated = req.query.datecreated;
 
   db.query(
-    `select bill.id, bill.state, productinbill.quantity as quantity, product.quantity as totalamount, bill.datecreated, product.price 
+    `select bill.id, bill.state, sum(productinbill.quantity) as quantity, sum(productinbill.quantity*product.price) as totalamount, bill.datecreated 
             from bill inner join productinbill on bill.id = productinbill.idbill inner join product on productinbill.idproduct = product.id ${
               state && idbill
                 ? `where bill.state = '${state}' and bill.id = '${idbill}'`
                 : `${
                     state && datecreated
-                      ? `where bill.state = '${state}' and bill.datecreated = '${datecreated}'`
+                      ? `where bill.state = '${state}' and DATE(bill.datecreated) = '${datecreated}'`
                       : `${
                           state
                             ? `where bill.state = '${state}'`
@@ -77,14 +77,30 @@ checkoutRoute.get("/:idbill?", (req, res) => {
                                   ? `where bill.id = '${idbill}'`
                                   : `${
                                       datecreated
-                                        ? `where convert(date, bill.datecreated) = '${datecreated}'`
+                                        ? `where DATE(bill.datecreated) = '${datecreated}'`
                                         : ""
                                     }`
                               }`
                         }`
                   }`
-            }`,
+            } group by bill.id, bill.state, bill.datecreated order by bill.id`,
 
+    (err, data) => {
+      if (err) throw err;
+      res.send(data);
+    }
+  );
+});
+
+checkoutRoute.get("/:idbill/products", (req, res) => {
+  const db = new Database();
+  const idbill = req.params.idbill;
+  db.query(
+    `select product.imageurl, productinfo.name, product.colorname, productinbill.quantity, product.price, bill.datecreated, bill.datedone
+            from bill inner join productinbill on bill.id = productinbill.idbill 
+                                  inner join product on productinbill.idproduct = product.id
+                                              inner join productinfo on product.infoid = productinfo.id
+            where bill.id = '${idbill}'`,
     (err, data) => {
       if (err) throw err;
       res.send(data);
