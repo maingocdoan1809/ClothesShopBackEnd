@@ -75,3 +75,39 @@ export type LoginResult = {
   phonenumber: string | undefined;
   address: string | undefined;
 };
+
+export async function getIdProduct(idBill: string) {
+  const anotherDb: IDatabase = new Database(process.env.SQL_STR);
+  const result = await anotherDb.query(
+    `SELECT idproduct FROM productinbill WHERE idbill = '${idBill}'`,(err, result, fields) => {
+      if (err) {
+        return ''
+      } else {
+        return result;
+      }
+    }
+  );
+  return result[0].idproduct;
+}
+
+export async function getQuantityInBill(idBill: string) {
+  const anotherDb: IDatabase = new Database(process.env.SQL_STR);
+  const result = await anotherDb.query(
+    `SELECT quantity FROM productinbill WHERE idbill = '${idBill}'`,(err, result, fields) => {
+      if (err) {
+        return ''
+      } else {
+        return result;
+      }
+    }
+  );
+  return result[0].quantity;
+}
+
+export async function updateQuantity(idProduct: string, quantity: number) {
+  const anotherDb: IDatabase = new Database(process.env.SQL_STR);
+  await anotherDb.query(
+    `UPDATE product
+     SET quantity = quantity - ${quantity}, totalbought = totalbought + ${quantity}
+     WHERE id = '${idProduct}'`)
+}

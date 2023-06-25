@@ -1,5 +1,10 @@
 import Router, { query } from "express";
 import { Database } from "../../db/IDatabase";
+import {
+  getIdProduct,
+  getQuantityInBill,
+  updateQuantity
+} from "../../utils/utilities";
 const PRODUCTS_PER_FETCH = 5;
 
 const productRouter = Router();
@@ -105,6 +110,31 @@ productRouter.put(
         }
       }
     );
+  }
+);
+
+productRouter.post("/done", async (req, res) => {
+  const selectedOrders = req.body.selectedOrders; 
+  
+  const ids = `('${selectedOrders.join("', '")}')`;
+
+  const database = new Database();
+  await database.query(`UPDATE bill SET state = '3' WHERE id IN ${ids}`,
+    (err, result) => {}
+  );
+  for(let i = 0; i < selectedOrders.length; i++)
+  {
+    let idProduct = await getIdProduct(selectedOrders[i]);
+    let quantity = await getQuantityInBill(selectedOrders[i]);
+    await updateQuantity(idProduct, quantity);
+  }
+
+
+    return res.status(200).json({
+      success: true,
+      message: "Thành công",
+      content: "Cập nhật thành công"
+    });
   }
 );
 
