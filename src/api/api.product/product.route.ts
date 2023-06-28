@@ -3,7 +3,11 @@ import { Database } from "../../db/IDatabase";
 import {
   getIdProduct,
   getQuantityInBill,
-  updateQuantity
+  updateProduct,
+  updateState,
+  getQuantityInProduct,
+  getStateBill,
+  updateProductCancel
 } from "../../utils/utilities";
 const PRODUCTS_PER_FETCH = 5;
 
@@ -114,28 +118,179 @@ productRouter.put(
 );
 
 productRouter.post("/done", async (req, res) => {
+try{
   const selectedOrders = req.body.selectedOrders; 
-  
-  const ids = `('${selectedOrders.join("', '")}')`;
 
-  const database = new Database();
-  await database.query(`UPDATE bill SET state = '3' WHERE id IN ${ids}`,
-    (err, result) => {}
-  );
+  var billSucess = [];
+  var billFail = [];
   for(let i = 0; i < selectedOrders.length; i++)
   {
-    let idProduct = await getIdProduct(selectedOrders[i]);
-    let quantity = await getQuantityInBill(selectedOrders[i]);
-    await updateQuantity(idProduct, quantity);
+    let state = await getStateBill(selectedOrders[i]);
+    if(state[0].state == 2)
+    {
+      await updateState(selectedOrders[i], 3, 2);
+      billSucess.push(selectedOrders[i]);
+    }
+    else
+    {
+      billFail.push(selectedOrders[i]);
+    }
   }
-
-
     return res.status(200).json({
       success: true,
       message: "Thành công",
-      content: "Cập nhật thành công"
+      content: "Cập nhật đơn hàng thành công",
+      billSucess: billSucess,
+      billFail: billFail
     });
   }
-);
+
+catch(err){
+  return res.status(500).json({
+    success: false,
+    message: "Thất bại",
+    content: err
+  });
+}
+});
+
+productRouter.post("/transport", async (req, res) => {
+  try{
+    const selectedOrders = req.body.selectedOrders; 
+  
+    var billSucess = [];
+    var billFail = [];
+    for(let i = 0; i < selectedOrders.length; i++)
+    {
+      let state = await getStateBill(selectedOrders[i]);
+      if(state[0].state == 1)
+      {
+        await updateState(selectedOrders[i], 2, 1);
+        billSucess.push(selectedOrders[i]);
+      }
+      else
+      {
+        billFail.push(selectedOrders[i]);
+      }
+    }
+      return res.status(200).json({
+        success: true,
+        message: "Thành công",
+        content: "Đang vận chuyển",
+        billSucess: billSucess,
+        billFail: billFail
+      });
+    }
+  
+  catch(err){
+    return res.status(500).json({
+      success: false,
+      message: "Thất bại",
+      content: err
+    });
+  }
+  });
+
+productRouter.post("/confirm", async (req, res) => {
+  try{
+    const selectedOrders = req.body.selectedOrders; 
+  
+    const database = new Database();
+    var billSucess = [];
+    var billFail = [];
+    for(let i = 0; i < selectedOrders.length; i++)
+    {
+      let idProduct = await getIdProduct(selectedOrders[i]);
+      let bill = await getQuantityInBill(selectedOrders[i]);
+      if(typeof(idProduct[0]) == "undefined" || idProduct[0] == '' || typeof(bill[0]) == "undefined" || bill[0] == '' )
+      {
+        continue;
+      }
+      else
+      {
+        let quantityProduct = await getQuantityInProduct(idProduct[0].idproduct);
+        //Nếu số sản phẩm còn lại k đủ cho đơn hàng thì chuyển đơn hàng sang trạng thái huỷ
+        if(quantityProduct[0].quantity >= bill[0].quantity && bill[0].state == 0)
+        {
+          await updateProduct(idProduct[0].idproduct, bill[0].quantity);
+          await updateState(selectedOrders[i], 1, 0);
+          billSucess.push(selectedOrders[i]);
+        }
+        else
+        {
+          billFail.push(selectedOrders[i]);
+        }
+  
+      }
+    }
+      return res.status(200).json({
+        success: true,
+        message: "Thành công",
+        content: "Xác nhận thành công",
+        billSucess: billSucess,
+        billFail: billFail
+      });
+    }
+  
+  catch(err){
+    return res.status(500).json({
+      success: false,
+      message: "Xác nhận thất bại",
+      content: err
+    });
+  }
+  });
+
+  productRouter.post("/cancel", async (req, res) => {
+    try{
+      const selectedOrders = req.body.selectedOrders; 
+    
+      const database = new Database();
+      var billSucess = [];
+      var billFail = [];
+      for(let i = 0; i < selectedOrders.length; i++)
+      {
+        let idProduct = await getIdProduct(selectedOrders[i]);
+        let bill = await getQuantityInBill(selectedOrders[i]);
+        if(typeof(idProduct[0]) == "undefined" || idProduct[0] == '' || typeof(bill[0]) == "undefined" || bill[0] == '' )
+        {
+          continue;
+        }
+        else
+        {
+          if(bill[0].state == 0)
+          {
+            await updateState(selectedOrders[i], 4, 4);
+            billSucess.push(selectedOrders[i]);
+          }
+          else if (bill[0].state == 4 || bill[0].state == 3)
+          {
+            billFail.push(selectedOrders[i]);
+          }
+          else
+          {
+            await updateProductCancel(idProduct[0].idproduct, bill[0].quantity);
+            await updateState(selectedOrders[i], 4, 4);
+            billSucess.push(selectedOrders[i]);
+          }
+        }
+      }
+        return res.status(200).json({
+          success: true,
+          message: "Thành công",
+          content: "Hủy đơn thành công",
+          billSucess: billSucess,
+          billFail: billFail
+        });
+      }
+    
+    catch(err){
+      return res.status(500).json({
+        success: false,
+        message: "Xác nhận thất bại",
+        content: err
+      });
+    }
+    });
 
 export default productRouter;
