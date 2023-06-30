@@ -55,33 +55,43 @@ checkoutRoute.post("", authenticateUser, (req, res) => {
   }
 });
 
+const ORDERS_PER_PAGE = 8;
 checkoutRoute.get("/:idbill?", (req, res) => {
   const db = new Database();
-  const state = req.query.state;
-  const idbill = (req.params.idbill as string);
-  const datecreated = req.query.datecreated;
+  const state = req.query.state as string;
+  const idbill = req.params.idbill as string;
+  const datecreated = req.query.datecreated as string;
 
-  db.
-    query(`select bill.id, bill.state, sum(productinbill.quantity) as quantity, sum(productinbill.quantity*product.price) as totalamount, bill.datecreated 
-            from bill inner join productinbill on bill.id = productinbill.idbill inner join product on productinbill.idproduct = product.id ${
-      (state && idbill)
-        ? `where bill.state = '${state}' and bill.id = '${idbill}'`
-        : `${(state && datecreated)
-            ? `where bill.state = '${state}' and DATE(bill.datecreated) = '${datecreated}'`
-            : `${state
-                ? `where bill.state = '${state}'`
-                : `${idbill
-                    ? `where bill.id = '${idbill}'`
-                    : `${datecreated
-                        ? `where DATE(bill.datecreated) = '${datecreated}'`
-                        : ""}`}`}`}`
-    } group by bill.id, bill.state, bill.datecreated order by bill.id`, 
-  
-    (err, data)=>{
-      if(err) throw err;
+  const currentPage = parseInt(req.query.page as string) || 0;
+  const offset = currentPage * ORDERS_PER_PAGE; 
+  db.query(
+    `SELECT bill.id, bill.state, SUM(productinbill.quantity) AS quantity, SUM(productinbill.quantity * product.price) AS totalamount, bill.datecreated 
+    FROM bill
+    INNER JOIN productinbill ON bill.id = productinbill.idbill
+    INNER JOIN product ON productinbill.idproduct = product.id
+    ${
+      state && idbill
+        ? `WHERE bill.state = '${state}' AND bill.id = '${idbill}'`
+        : state && datecreated
+        ? `WHERE bill.state = '${state}' AND DATE(bill.datecreated) = '${datecreated}'`
+        : state
+        ? `WHERE bill.state = '${state}'`
+        : idbill
+        ? `WHERE bill.id = '${idbill}'`
+        : datecreated
+        ? `WHERE DATE(bill.datecreated) = '${datecreated}'`
+        : ""
+    }
+    GROUP BY bill.id, bill.state, bill.datecreated
+    ORDER BY bill.datecreated DESC, bill.id
+    LIMIT ${ORDERS_PER_PAGE} OFFSET ${offset}`,
+    (err, data) => {
+      if (err) throw err;
       res.send(data);
-    })
+    }
+  );
 });
+
 
 checkoutRoute.get('/:idbill/products',(req, res)=>{
   const db = new Database();
