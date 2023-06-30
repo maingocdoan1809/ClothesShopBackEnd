@@ -75,3 +75,116 @@ export type LoginResult = {
   phonenumber: string | undefined;
   address: string | undefined;
 };
+
+export async function getIdProduct(idBill: string) {
+  try{
+    const anotherDb: IDatabase = new Database(process.env.SQL_STR);
+    const result = await anotherDb.query(
+      `SELECT idproduct FROM productinbill JOIN bill On bill.id = productinbill .idbill WHERE idbill = '${idBill}'`,(err, result, fields) => {
+        if (err) {
+          return ''
+        } else {
+          return result;
+        }
+      }
+    );
+    return result;
+  }
+  catch(err){
+    return [''];
+  }
+}
+
+export async function getStateBill(idBill: string) {
+  try{
+    const anotherDb: IDatabase = new Database(process.env.SQL_STR);
+    const result = await anotherDb.query(
+      `SELECT state FROM productinbill JOIN bill On bill.id = productinbill .idbill WHERE idbill = '${idBill}'`,(err, result, fields) => {
+        if (err) {
+          return ''
+        } else {
+          return result;
+        }
+      }
+    );
+    return result;
+  }
+  catch(err){
+    return [''];
+  }
+}
+
+export async function getQuantityInBill(idBill: string) {
+  try{
+    const anotherDb: IDatabase = new Database(process.env.SQL_STR);
+    const result = await anotherDb.query(
+      `SELECT quantity, state FROM productinbill JOIN bill On bill.id = productinbill .idbill  WHERE idbill = '${idBill}'`,(err, result, fields) => {
+        if (err) {
+          return ''
+        } else {
+          return result;
+        }
+      }
+    );
+    return result;
+  }
+  catch (err) {
+    return [''];
+  }
+}
+
+export async function getQuantityInProduct(idProduct: string) {
+  try{
+    const anotherDb: IDatabase = new Database(process.env.SQL_STR);
+    const result = await anotherDb.query(
+      `SELECT quantity FROM product WHERE id = '${idProduct}'`,(err, result, fields) => {
+        if (err) {
+          return ''
+        } else {
+          return result;
+        }
+      }
+    );
+    return result;
+  }
+  catch (err) {
+    return [''];
+  }
+}
+
+export async function updateProduct(idProduct: string, quantity: number) {
+  const anotherDb: IDatabase = new Database(process.env.SQL_STR);
+  await anotherDb.query(
+    `UPDATE product
+     SET quantity = quantity - ${quantity}, totalbought = totalbought + ${quantity}
+     WHERE id = '${idProduct}'`)
+}
+
+export async function updateProductCancel(idProduct: string, quantity: number) {
+  const anotherDb: IDatabase = new Database(process.env.SQL_STR);
+  await anotherDb.query(
+    `UPDATE product
+     SET quantity = quantity + ${quantity}, totalbought = totalbought - ${quantity}
+     WHERE id = '${idProduct}'`)
+     
+}
+
+export async function updateState(idBill: string, state: number, stateDefault: number) {
+  const anotherDb: IDatabase = new Database(process.env.SQL_STR);
+  if(stateDefault != 4)
+  {
+    await anotherDb.query(
+      `UPDATE bill
+        SET state = '${state}'
+        WHERE id = '${idBill}'
+        and state = '${stateDefault}'`)
+  }
+  else
+  {
+    await anotherDb.query(
+      `UPDATE bill
+        SET state = '${state}'
+        WHERE id = '${idBill}'`)
+  }
+
+}
