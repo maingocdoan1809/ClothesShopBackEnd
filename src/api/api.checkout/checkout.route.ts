@@ -63,27 +63,27 @@ checkoutRoute.get("/:idbill?", (req, res) => {
 
   db.query(
     `select bill.id, bill.state, sum(productinbill.quantity) as quantity, sum(productinbill.quantity*product.price) as totalamount, bill.datecreated 
-            from bill inner join productinbill on bill.id = productinbill.idbill inner join product on productinbill.idproduct = product.id ${
-              state && idbill
-                ? `where bill.state = '${state}' and bill.id = '${idbill}'`
-                : `${
-                    state && datecreated
-                      ? `where bill.state = '${state}' and DATE(bill.datecreated) = '${datecreated}'`
-                      : `${
-                          state
-                            ? `where bill.state = '${state}'`
-                            : `${
-                                idbill
-                                  ? `where bill.id = '${idbill}'`
-                                  : `${
-                                      datecreated
-                                        ? `where DATE(bill.datecreated) = '${datecreated}'`
-                                        : ""
-                                    }`
-                              }`
-                        }`
-                  }`
-            } group by bill.id, bill.state, bill.datecreated order by bill.id`,
+    from bill inner join productinbill on bill.id = productinbill.idbill inner join product on productinbill.idproduct = product.id ${
+      state && idbill
+        ? `where bill.state = '${state}' and bill.id = '${idbill}'`
+        : `${
+            state && datecreated
+              ? `where bill.state = '${state}' and DATE(bill.datecreated) = '${datecreated}'`
+              : `${
+                  state
+                    ? `where bill.state = '${state}'`
+                    : `${
+                        idbill
+                          ? `where bill.id = '${idbill}'`
+                          : `${
+                              datecreated
+                                ? `where DATE(bill.datecreated) = '${datecreated}'`
+                                : ""
+                            }`
+                      }`
+                }`
+          }`
+    } group by bill.id, bill.state, bill.datecreated order by bill.id`,
 
     (err, data) => {
       if (err) throw err;
@@ -97,9 +97,9 @@ checkoutRoute.get("/:idbill/products", (req, res) => {
   const idbill = req.params.idbill;
   db.query(
     `select product.imageurl, productinfo.name, product.colorname, productinbill.quantity, product.price, bill.datecreated, bill.datedone
-            from bill inner join productinbill on bill.id = productinbill.idbill 
-                                  inner join product on productinbill.idproduct = product.id
-                                              inner join productinfo on product.infoid = productinfo.id
+    from bill inner join productinbill on bill.id = productinbill.idbill 
+    inner join product on productinbill.idproduct = product.id
+    inner join productinfo on product.infoid = productinfo.id
             where bill.id = '${idbill}'`,
     (err, data) => {
       if (err) throw err;
@@ -107,6 +107,8 @@ checkoutRoute.get("/:idbill/products", (req, res) => {
     }
   );
 });
+
+function makeUpdateProductQueries(product) {}
 
 function makeCartQueries(idBill: string, cart: any) {
   let queries = [] as XQuery[];
