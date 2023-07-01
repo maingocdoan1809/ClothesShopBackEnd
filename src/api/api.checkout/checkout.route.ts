@@ -97,10 +97,12 @@ checkoutRoute.get('/:idbill/products',(req, res)=>{
   const db = new Database();
   const idbill = req.params.idbill;
   db
-    .query(`select product.imageurl, productinfo.name, product.colorname, productinbill.quantity, product.price, bill.datecreated, bill.datedone
-            from bill inner join productinbill on bill.id = productinbill.idbill 
-                                  inner join product on productinbill.idproduct = product.id
-                                              inner join productinfo on product.infoid = productinfo.id
+    .query(`select product.imageurl, productinfo.name, product.colorname, productinbill.quantity, product.price, bill.datecreated, bill.datedone, 
+            bill.receivename, bill.receiveaddress, bill.receivephonenumber, account.fullname
+            from bill inner join productinbill on bill.id = productinbill.idbill
+                      inner join account on bill.username = account.username 
+                      inner join product on productinbill.idproduct = product.id
+                      inner join productinfo on product.infoid = productinfo.id
             where bill.id = '${idbill}'`, 
     (err, data)=>{
       if(err) throw err;
