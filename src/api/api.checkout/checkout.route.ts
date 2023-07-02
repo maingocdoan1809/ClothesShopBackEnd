@@ -85,6 +85,7 @@ checkoutRoute.get("/:idbill?", (req, res) => {
     GROUP BY bill.id, bill.state, bill.datecreated
     ORDER BY bill.datecreated DESC, bill.id
     LIMIT ${ORDERS_PER_PAGE} OFFSET ${offset}`,
+
     (err, data) => {
       if (err) throw err;
       res.send(data);
@@ -107,8 +108,11 @@ checkoutRoute.get('/:idbill/products',(req, res)=>{
     (err, data)=>{
       if(err) throw err;
       res.send(data);
-    })
-})
+    }
+  );
+});
+
+function makeUpdateProductQueries(product) {}
 
 function makeCartQueries(idBill: string, cart: any) {
   let queries = [] as XQuery[];
