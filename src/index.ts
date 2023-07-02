@@ -36,7 +36,7 @@ app.use("/products", productRouter);
 app.use("/categories", categoryRouter);
 app.use("/comments", commentRouter);
 app.use("/checkout", checkoutRouter);
-app.use("/customer", customerRouter)
+app.use("/customer", customerRouter);
 app.use("/search", searchRouter);
 const PORT = 3000;
 const httpServer = http.createServer(app);
@@ -48,15 +48,4 @@ const sockerServer = new io.Server(httpServer, {
 
 httpServer.listen(PORT, () => {
   console.log(`Server is listening on port ${PORT}`);
-});
-
-/// socket
-
-sockerServer.on("connection", (server) => {
-  server.on("buy", (data: string) => {
-    server.broadcast.emit(
-      "notify",
-      `User ${data} got a new bill, check it out`
-    );
-  });
 });
