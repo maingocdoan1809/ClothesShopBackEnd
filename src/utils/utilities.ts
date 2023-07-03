@@ -83,6 +83,7 @@ export type ProductInBill = {
   image: string;
   colorname: string;
   colorcode: string;
+  size: string;
 };
 export type BillDetail = {
   id: string;

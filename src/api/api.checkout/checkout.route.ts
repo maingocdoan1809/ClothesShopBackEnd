@@ -125,6 +125,7 @@ checkoutRoute.get("/:username/all", authenticateUser, (req, res) => {
           image: row["imageurl"],
           colorname: row["colorname"],
           colorcode: row["colorcode"],
+          size: row["size"],
         });
       }
       orders.orders = Array.from(mapId.values());
