@@ -15,7 +15,7 @@ export function login(req: Request, res: Response) {
 
   const db = new Database();
 
-  const querystring = `Select * from account where username = '${username}' and password = '${hashpassword}'`;
+  const querystring = `Select * from account where username = '${username}' and password = '${hashpassword}' and state = 1`;
 
   db.query(querystring, (err, result, fields) => {
     if (err) {

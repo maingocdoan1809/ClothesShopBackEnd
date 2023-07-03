@@ -1,5 +1,6 @@
 import Router, { query } from "express";
 import { Database } from "../../db/IDatabase";
+import { SHA256 } from "crypto-js";
 import {
   getIdProduct,
   getQuantityInBill,
@@ -9,6 +10,9 @@ import {
   getStateBill,
   updateProductCancel
 } from "../../utils/utilities";
+
+
+
 const PRODUCTS_PER_FETCH = 5;
 
 const productRouter = Router();
@@ -293,4 +297,34 @@ productRouter.post("/confirm", async (req, res) => {
     }
     });
 
+
+productRouter.post("/:productinfo", (req, res) => {
+  const infoId = req.params.productinfo;
+  const database = new Database();
+
+  res.send(makeUpdateProductQueries(req.body, infoId));
+
 export default productRouter;
+
+function makeUpdateProductQueries(info: any, pInfo: string) {
+  const queries = [];
+  if (info.sizes) {
+    for (let i of info.sizes) {
+      queries.push(
+        `Update products set quantity = ${i.quantity}, price = ${info.price} where id = ${i.productId}`
+      );
+    }
+  }
+  if (info.newSizes) {
+    for (let i of info.newSizes) {
+      const newGeneratedID = SHA256(
+        Date.now().toString() + Math.random() + ""
+      ).toString();
+
+      queries.push(
+        `Insert into products(id, infoid, size, colorcode, colorname, quantity, price, imageurl) values ('${newGeneratedID}', '${pInfo}', '${i.size}', '${info.colorcode}', '${info.colorname}', '${i.quantity}', '${info.price}', '${info.imgUrl}')`
+      );
+    }
+  }
+  return queries;
+}

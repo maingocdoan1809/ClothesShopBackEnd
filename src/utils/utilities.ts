@@ -188,3 +188,30 @@ export async function updateState(idBill: string, state: number, stateDefault: n
   }
 
 }
+export type ProductInBill = {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+  colorname: string;
+  colorcode: string;
+};
+export type BillDetail = {
+  id: string;
+  total: number;
+  state: number;
+  date: string;
+
+  products: ProductInBill[];
+};
+export type CustomerOrder = {
+  username: string;
+  info: {
+    address: string;
+    phone: string;
+    name: string;
+  };
+  orders: BillDetail[];
+};
+

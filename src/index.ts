@@ -14,6 +14,7 @@ import categoryRouter from "./api/api.category/category.route";
 import commentRouter from "./api/api.comment/comment.route";
 import checkoutRouter from "./api/api.checkout/checkout.route";
 import customerRouter from "./api/api.customer/customer.route";
+import searchRouter from "./api/api.searchproduct/search.router";
 
 import io from "socket.io";
 const app = express();
@@ -35,7 +36,8 @@ app.use("/products", productRouter);
 app.use("/categories", categoryRouter);
 app.use("/comments", commentRouter);
 app.use("/checkout", checkoutRouter);
-app.use("/customer", customerRouter)
+app.use("/customer", customerRouter);
+app.use("/search", searchRouter);
 const PORT = 3000;
 const httpServer = http.createServer(app);
 const sockerServer = new io.Server(httpServer, {
@@ -46,15 +48,4 @@ const sockerServer = new io.Server(httpServer, {
 
 httpServer.listen(PORT, () => {
   console.log(`Server is listening on port ${PORT}`);
-});
-
-/// socket
-
-sockerServer.on("connection", (server) => {
-  server.on("buy", (data: string) => {
-    server.broadcast.emit(
-      "notify",
-      `User ${data} got a new bill, check it out`
-    );
-  });
 });
