@@ -121,8 +121,11 @@ CREATE TABLE `product` (
   `promotedprice` int(11) DEFAULT 0,
   `category` varchar(300) NOT NULL,
   `image` varchar(300)
+  
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- ALTER TABLE product
+-- ADD FOREIGN KEY (totalbought) REFERENCES productinfo(totalbought);
 -- --------------------------------------------------------
 
 --
@@ -183,6 +186,9 @@ ALTER TABLE `category`
   ADD PRIMARY KEY (`id`);
 
 --
+-- ALTER TABLE `productinfo`
+--   ADD PRIMARY KEY(`totalbought`);
+--
 -- Indexes for table `comment`
 --
 ALTER TABLE `comment`
@@ -195,6 +201,7 @@ ALTER TABLE `comment`
 ALTER TABLE `product`
   ADD PRIMARY KEY (`id`),
   ADD KEY `PR_KEY_category` (`category`);
+
 
 --
 -- Indexes for table `productinbill`
@@ -261,6 +268,11 @@ ALTER TABLE `productincart`
   ADD CONSTRAINT `productincart_ibfk_1` FOREIGN KEY (`idcart`) REFERENCES `cart` (`id`),
   ADD CONSTRAINT `productincart_ibfk_2` FOREIGN KEY (`idproduct`) REFERENCES `product` (`id`);
 COMMIT;
+
+UPDATE bill
+SET state = 1
+where id = `d18f70X0X62f30`;
+
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
