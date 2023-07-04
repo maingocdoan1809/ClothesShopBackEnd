@@ -100,8 +100,6 @@ checkoutRoute.get("/:username/all", authenticateUser, (req, res) => {
   if (search == undefined) {
     search = "";
   }
-  console.log("Search:" + search);
-
   if (page == undefined) {
     page = "0";
   }

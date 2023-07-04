@@ -1,5 +1,5 @@
 import Router, { query } from "express";
-import { Database } from "../../db/IDatabase";
+import { Database, XQuery } from "../../db/IDatabase";
 
 import {
   getIdProduct,
@@ -8,7 +8,7 @@ import {
   updateState,
   getQuantityInProduct,
   getStateBill,
-  updateProductCancel
+  updateProductCancel,
 } from "../../utils/utilities";
 
 import { SHA256 } from "crypto-js";
@@ -121,189 +121,182 @@ productRouter.put(
   }
 );
 
-
 productRouter.post("/done", async (req, res) => {
-try{
-  const selectedOrders = req.body.selectedOrders; 
+  try {
+    const selectedOrders = req.body.selectedOrders;
 
-  var billSucess = [];
-  var billFail = [];
-  for(let i = 0; i < selectedOrders.length; i++)
-  {
-    let state = await getStateBill(selectedOrders[i]);
-    if(state[0].state == 2)
-    {
-      await updateState(selectedOrders[i], 3, 2);
-      billSucess.push(selectedOrders[i]);
+    var billSucess = [];
+    var billFail = [];
+    for (let i = 0; i < selectedOrders.length; i++) {
+      let state = await getStateBill(selectedOrders[i]);
+      if (state[0].state == 2) {
+        await updateState(selectedOrders[i], 3, 2);
+        billSucess.push(selectedOrders[i]);
+      } else {
+        billFail.push(selectedOrders[i]);
+      }
     }
-    else
-    {
-      billFail.push(selectedOrders[i]);
-    }
-  }
     return res.status(200).json({
       success: true,
       message: "Thành công",
       content: "Cập nhật đơn hàng thành công",
       billSucess: billSucess,
-      billFail: billFail
+      billFail: billFail,
     });
-  }
-
-catch(err){
-  return res.status(500).json({
-    success: false,
-    message: "Thất bại",
-    content: err
-  });
-}
-});
-
-productRouter.post("/transport", async (req, res) => {
-  try{
-    const selectedOrders = req.body.selectedOrders; 
-  
-    var billSucess = [];
-    var billFail = [];
-    for(let i = 0; i < selectedOrders.length; i++)
-    {
-      let state = await getStateBill(selectedOrders[i]);
-      if(state[0].state == 1)
-      {
-        await updateState(selectedOrders[i], 2, 1);
-        billSucess.push(selectedOrders[i]);
-      }
-      else
-      {
-        billFail.push(selectedOrders[i]);
-      }
-    }
-      return res.status(200).json({
-        success: true,
-        message: "Thành công",
-        content: "Đang vận chuyển",
-        billSucess: billSucess,
-        billFail: billFail
-      });
-    }
-  
-  catch(err){
+  } catch (err) {
     return res.status(500).json({
       success: false,
       message: "Thất bại",
-      content: err
+      content: err,
     });
   }
-  });
+});
+
+productRouter.post("/transport", async (req, res) => {
+  try {
+    const selectedOrders = req.body.selectedOrders;
+
+    var billSucess = [];
+    var billFail = [];
+    for (let i = 0; i < selectedOrders.length; i++) {
+      let state = await getStateBill(selectedOrders[i]);
+      if (state[0].state == 1) {
+        await updateState(selectedOrders[i], 2, 1);
+        billSucess.push(selectedOrders[i]);
+      } else {
+        billFail.push(selectedOrders[i]);
+      }
+    }
+    return res.status(200).json({
+      success: true,
+      message: "Thành công",
+      content: "Đang vận chuyển",
+      billSucess: billSucess,
+      billFail: billFail,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Thất bại",
+      content: err,
+    });
+  }
+});
 
 productRouter.post("/confirm", async (req, res) => {
-  try{
-    const selectedOrders = req.body.selectedOrders; 
-  
+  try {
+    const selectedOrders = req.body.selectedOrders;
+
     const database = new Database();
     var billSucess = [];
     var billFail = [];
-    for(let i = 0; i < selectedOrders.length; i++)
-    {
+    for (let i = 0; i < selectedOrders.length; i++) {
       let idProduct = await getIdProduct(selectedOrders[i]);
       let bill = await getQuantityInBill(selectedOrders[i]);
-      if(typeof(idProduct[0]) == "undefined" || idProduct[0] == '' || typeof(bill[0]) == "undefined" || bill[0] == '' )
-      {
+      if (
+        typeof idProduct[0] == "undefined" ||
+        idProduct[0] == "" ||
+        typeof bill[0] == "undefined" ||
+        bill[0] == ""
+      ) {
         continue;
-      }
-      else
-      {
-        let quantityProduct = await getQuantityInProduct(idProduct[0].idproduct);
+      } else {
+        let quantityProduct = await getQuantityInProduct(
+          idProduct[0].idproduct
+        );
         //Nếu số sản phẩm còn lại k đủ cho đơn hàng thì chuyển đơn hàng sang trạng thái huỷ
-        if(quantityProduct[0].quantity >= bill[0].quantity && bill[0].state == 0)
-        {
+        if (
+          quantityProduct[0].quantity >= bill[0].quantity &&
+          bill[0].state == 0
+        ) {
           await updateProduct(idProduct[0].idproduct, bill[0].quantity);
           await updateState(selectedOrders[i], 1, 0);
           billSucess.push(selectedOrders[i]);
-        }
-        else
-        {
+        } else {
           billFail.push(selectedOrders[i]);
         }
-  
       }
     }
-      return res.status(200).json({
-        success: true,
-        message: "Thành công",
-        content: "Xác nhận thành công",
-        billSucess: billSucess,
-        billFail: billFail
-      });
-    }
-  
-  catch(err){
+    return res.status(200).json({
+      success: true,
+      message: "Thành công",
+      content: "Xác nhận thành công",
+      billSucess: billSucess,
+      billFail: billFail,
+    });
+  } catch (err) {
     return res.status(500).json({
       success: false,
       message: "Xác nhận thất bại",
-      content: err
+      content: err,
     });
   }
-  });
+});
 
-  productRouter.post("/cancel", async (req, res) => {
-    try{
-      const selectedOrders = req.body.selectedOrders; 
-    
-      const database = new Database();
-      var billSucess = [];
-      var billFail = [];
-      for(let i = 0; i < selectedOrders.length; i++)
-      {
-        let idProduct = await getIdProduct(selectedOrders[i]);
-        let bill = await getQuantityInBill(selectedOrders[i]);
-        if(typeof(idProduct[0]) == "undefined" || idProduct[0] == '' || typeof(bill[0]) == "undefined" || bill[0] == '' )
-        {
-          continue;
-        }
-        else
-        {
-          if(bill[0].state == 0)
-          {
-            await updateState(selectedOrders[i], 4, 4);
-            billSucess.push(selectedOrders[i]);
-          }
-          else if (bill[0].state == 4 || bill[0].state == 3)
-          {
-            billFail.push(selectedOrders[i]);
-          }
-          else
-          {
-            await updateProductCancel(idProduct[0].idproduct, bill[0].quantity);
-            await updateState(selectedOrders[i], 4, 4);
-            billSucess.push(selectedOrders[i]);
-          }
+productRouter.post("/cancel", async (req, res) => {
+  try {
+    const selectedOrders = req.body.selectedOrders;
+
+    const database = new Database();
+    var billSucess = [];
+    var billFail = [];
+    for (let i = 0; i < selectedOrders.length; i++) {
+      let idProduct = await getIdProduct(selectedOrders[i]);
+      let bill = await getQuantityInBill(selectedOrders[i]);
+      if (
+        typeof idProduct[0] == "undefined" ||
+        idProduct[0] == "" ||
+        typeof bill[0] == "undefined" ||
+        bill[0] == ""
+      ) {
+        continue;
+      } else {
+        if (bill[0].state == 0) {
+          await updateState(selectedOrders[i], 4, 4);
+          billSucess.push(selectedOrders[i]);
+        } else if (bill[0].state == 4 || bill[0].state == 3) {
+          billFail.push(selectedOrders[i]);
+        } else {
+          await updateProductCancel(idProduct[0].idproduct, bill[0].quantity);
+          await updateState(selectedOrders[i], 4, 4);
+          billSucess.push(selectedOrders[i]);
         }
       }
-        return res.status(200).json({
-          success: true,
-          message: "Thành công",
-          content: "Hủy đơn thành công",
-          billSucess: billSucess,
-          billFail: billFail
-        });
-      }
-    
-    catch(err){
-      return res.status(500).json({
-        success: false,
-        message: "Xác nhận thất bại",
-        content: err
-      });
     }
+    return res.status(200).json({
+      success: true,
+      message: "Thành công",
+      content: "Hủy đơn thành công",
+      billSucess: billSucess,
+      billFail: billFail,
     });
-
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Xác nhận thất bại",
+      content: err,
+    });
+  }
+});
 
 productRouter.post("/:productinfo", (req, res) => {
   const infoId = req.params.productinfo;
   const database = new Database();
 
-  res.send(makeUpdateProductQueries(req.body, infoId));
+  database
+    .multipeQueryWithTransaction(
+      makeUpdateProductQueries(req.body, infoId).map((q) => {
+        return {
+          query: q,
+        } as XQuery;
+      })
+    )
+    .then((ok) => {
+      res.status(201).send({ created: "updated" });
+    })
+    .catch((err) => {
+      res.status(500).send({ err });
+    });
 });
 
 export default productRouter;
@@ -313,7 +306,7 @@ function makeUpdateProductQueries(info: any, pInfo: string) {
   if (info.sizes) {
     for (let i of info.sizes) {
       queries.push(
-        `Update products set quantity = ${i.quantity}, price = ${info.price} where id = ${i.productId}`
+        `Update product set quantity = ${i.quantity}, price = ${info.price} where id = '${i.productId}'`
       );
     }
   }
@@ -324,7 +317,7 @@ function makeUpdateProductQueries(info: any, pInfo: string) {
       ).toString();
 
       queries.push(
-        `Insert into products(id, infoid, size, colorcode, colorname, quantity, price, imageurl) values ('${newGeneratedID}', '${pInfo}', '${i.size}', '${info.colorcode}', '${info.colorname}', '${i.quantity}', '${info.price}', '${info.imgUrl}')`
+        `Insert into product(id, infoid, size, colorcode, colorname, quantity, price, imageurl) values ('${newGeneratedID}', '${pInfo}', '${i.size}', '${info.colorcode}', '${info.colorname}', '${i.quantity}', '${info.price}', '${info.imgUrl}')`
       );
     }
   }
