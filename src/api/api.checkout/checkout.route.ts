@@ -96,11 +96,11 @@ function convertCustomerOrdersToMap(results: any[]) {
 
 checkoutRoute.get("/:username/all", authenticateUser, (req, res) => {
   let page = req.query.page as string;
-  let search = req.query.search;
+  let search = req.query.search as string;
   if (search == undefined) {
     search = "";
   }
-  console.log("Search: " + search);
+  console.log("Search:" + search);
 
   if (page == undefined) {
     page = "0";
@@ -118,7 +118,7 @@ checkoutRoute.get("/:username/all", authenticateUser, (req, res) => {
 
   const database = new Database();
 
-  const queryStr = `SELECT bill.*, productinbill.*, product.colorcode, product.colorname,product.size, product.imageurl, productinfo.name FROM bill INNER JOIN productinbill ON bill.id = productinbill.idbill INNER JOIN product on productinbill.idproduct = product.id inner join productinfo on productinfo.id = product.infoid where username = '${username}' and bill.id like '%${search}%' ORDER by bill.state Limit ${BILLS_PER_FETCH} offset ${
+  const queryStr = `SELECT bill.*, productinbill.*, product.colorcode, product.colorname,product.size, product.imageurl, productinfo.name FROM bill INNER JOIN productinbill ON bill.id = productinbill.idbill INNER JOIN product on productinbill.idproduct = product.id inner join productinfo on productinfo.id = product.infoid where username = '${username}' and bill.id like '${search}%' ORDER by bill.state Limit ${BILLS_PER_FETCH} offset ${
     BILLS_PER_FETCH * Number.parseInt(page)
   }`;
 
